@@ -4,22 +4,137 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#F6F0E3">
 <title>Muiz Ahmed</title>
+<!-- Microsoft Clarity (project yxgjsowvuf). Loads on the live domain only, so local previews create no sessions. -->
+<script>
+if (location.hostname === "portfolio.muizahmed.com") {
+  (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "yxgjsowvuf");
+  clarity("set", "client", "root");
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #fafaf8; --fg: #1c1c1a; --muted: #6b6b66; }
-  @media (prefers-color-scheme: dark) { :root { --bg: #141413; --fg: #ececea; --muted: #9a9a95; } }
-  html, body { margin: 0; height: 100%; }
-  body { background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-         display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 16px; }
-  h1 { font-weight: 500; font-size: 1.5rem; margin: 0 0 .4rem; letter-spacing: .01em; }
-  p { margin: 0; color: var(--muted); }
+  /* Same tokens as the client pages: warm cream, ink, forest green. Light theme only. */
+  :root {
+    --bg: #F6F0E3;          /* warm cream page */
+    --surface: #FFFFFF;     /* the card */
+    --line: #E6E0D3;        /* card border */
+    --line-2: #C9C2B2;      /* secondary button border */
+    --fg: #1B2B26;          /* ink */
+    --muted: #5B6661;       /* muted text */
+    --green: #1F5C45;       /* primary button */
+    --green-deep: #174634;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; min-height: 100dvh;
+    background: var(--bg); color: var(--fg);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+    display: flex; align-items: center; justify-content: center;
+    padding: 48px 16px; overflow-x: hidden; overflow-x: clip;
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+
+  /* card on a stack of paper sheets, as in the client page hero */
+  .paper-stack { position: relative; width: 100%; max-width: 720px; isolation: isolate; }
+  .paper-stack::before, .paper-stack::after {
+    content: ""; position: absolute; inset: 0; z-index: 0; border-radius: 26px; border: 1px solid var(--line);
+    box-shadow: 0 18px 40px -24px rgba(60, 45, 20, 0.16); pointer-events: none;
+  }
+  .paper-stack::before { background: #FBF8F1; transform: translate(-16px, 16px) rotate(-3deg); }
+  .paper-stack::after { background: #F3ECDD; transform: translate(14px, 10px) rotate(2deg); z-index: -1; }
+  .card {
+    position: relative; z-index: 1; text-align: center;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 26px;
+    padding: 72px 68px 56px; box-shadow: 0 30px 70px -28px rgba(60, 45, 20, 0.2);
+  }
+
+  .avatar {
+    display: block; width: 124px; height: 124px; margin: 0 auto; border-radius: 50%; object-fit: cover;
+    background: #DCE6DF; box-shadow: 0 0 0 4px #FFFFFF, 0 0 0 5px var(--line), 0 12px 24px -12px rgba(60, 45, 20, 0.35);
+  }
+  h1 { margin: 28px 0 0; font-size: 52px; font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; }
+  .line { margin: 16px auto 0; max-width: 540px; font-size: 18px; line-height: 1.5; text-wrap: balance; }
+  .line strong { display: block; font-size: 20px; font-weight: 600; color: var(--fg); }
+  .line span { display: block; margin-top: 4px; color: var(--muted); }
+
+  /* buttons */
+  .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 40px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 50px; padding: 0 26px; border-radius: 999px;
+    font-size: 15px; font-weight: 600; text-decoration: none; white-space: nowrap;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  }
+  .btn svg { width: 16px; height: 16px; flex: none; }
+  .btn-primary { background: var(--green); color: #FFFFFF; box-shadow: 0 10px 24px -14px rgba(31, 92, 69, 0.6); }
+  .btn-primary:hover { transform: translateY(-2px); background: var(--green-deep); box-shadow: 0 14px 28px -14px rgba(31, 92, 69, 0.65); }
+  .btn-glass { background: transparent; color: var(--fg); border: 1px solid var(--line-2); }
+  .btn-glass:hover { transform: translateY(-2px); border-color: var(--fg); background: rgba(255, 255, 255, 0.6); }
+  @media (prefers-reduced-motion: reduce) { .btn { transition: none; } .btn:hover { transform: none; } }
+
+  footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+
+  /* narrow screens: primary full width, Upwork and LinkedIn share the row below */
+  @media (max-width: 600px) {
+    .paper-stack::before { transform: translate(-10px, 10px) rotate(-3deg); }
+    .paper-stack::after { transform: translate(8px, 7px) rotate(2deg); }
+    .card { padding: 48px 22px 30px; }
+    .avatar { width: 104px; height: 104px; }
+    h1 { margin-top: 24px; font-size: 36px; }
+    .line { font-size: 16px; }
+    .line strong { font-size: 18px; }
+    .actions { gap: 10px; margin-top: 32px; }
+    .actions .btn { flex: 1 1 0; padding: 0 16px; }
+    .actions .btn-primary { flex-basis: 100%; }
+    footer { margin-top: 36px; padding-top: 20px; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1>Muiz Ahmed</h1>
-  <p>Portfolio</p>
+<main class="paper-stack">
+  <div class="card">
+    <img class="avatar" src="assets/muiz-avatar.webp" srcset="assets/muiz-avatar.webp 1x, assets/muiz-avatar@2x.webp 2x" width="124" height="124" alt="Muiz Ahmed">
+    <h1>Muiz Ahmed</h1>
+    <p class="line"><strong>Copywriter turned creative strategist.</strong><span>Direct response copy for coaches and info products.</span></p>
+    <div class="actions">
+      <a class="btn btn-primary portfolio-link" href="https://docs.google.com/document/d/1Wat9AqC-cCPCnFkvn8fANnlzYkQ3Y8Uhipk-m55XAuE/edit?usp=sharing" target="_blank" rel="noopener">See my full portfolio
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+      </a>
+      <a class="btn btn-glass upwork-link" href="https://www.upwork.com/fl/muizahmedp" target="_blank" rel="noopener">Upwork
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+      </a>
+      <a class="btn btn-glass linkedin-link" href="https://www.linkedin.com/in/muiz-writes-copy" target="_blank" rel="noopener">LinkedIn
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+      </a>
+    </div>
+    <footer>&copy; Muiz Ahmed <span id="year">2026</span></footer>
+  </div>
 </main>
+
+<script>
+(function () {
+  var y = document.getElementById('year');
+  if (y) y.textContent = new Date().getFullYear();
+
+  // Clarity click events (no-ops locally: window.clarity only exists on the live domain)
+  document.addEventListener('click', function (e) {
+    if (!window.clarity) return;
+    var a = e.target.closest ? e.target.closest('a') : null;
+    if (!a) return;
+    if (a.matches('.portfolio-link')) window.clarity('event', 'portfolio_click');
+    else if (a.matches('.upwork-link')) window.clarity('event', 'upwork_click');
+    else if (a.matches('.linkedin-link')) window.clarity('event', 'linkedin_click');
+  });
+})();
+</script>
 </body>
 </html>
