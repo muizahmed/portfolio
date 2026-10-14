@@ -273,7 +273,15 @@
     color: #FFFFFF;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; padding: 16px;
   }
-  .screen iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .screen iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; z-index: 2; }
+  .loom-facade {
+    position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; padding: 16px; border: 0; background: transparent;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #FFFFFF; font: inherit; cursor: pointer;
+  }
+  .loom-facade:hover .play { transform: scale(1.06); }
+  .loom-facade:focus-visible { outline: 2px solid var(--gold-light); outline-offset: -6px; border-radius: 22px; }
+  .play { transition: transform 0.2s ease; }
+  .loom-noscript { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 3; color: #FFFFFF; font-weight: 600; text-underline-offset: 3px; }
   .play {
     width: 76px; height: 76px; border-radius: 50%; background: #FAF7F0;
     display: grid; place-items: center; box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.35);
@@ -475,8 +483,13 @@
       <div class="frame-wrap reveal">
         <div class="halo" aria-hidden="true"></div>
         <div class="frame">
-          <div class="screen">
-            <iframe src="https://www.loom.com/embed/93ccef514c574ad8a04b97c02b8d38f1" title="Muiz Ahmed intro for Emil" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+          <!-- Loom facade: the player iframe is added by JS after page load (or on click), so Loom never delays the load event. -->
+          <div class="screen" id="loom-screen">
+            <button class="loom-facade" type="button" aria-label="Play Muiz Ahmed intro for Emil">
+              <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg></span>
+              <small>Loom video</small>
+            </button>
+            <noscript><a class="loom-noscript" href="https://www.loom.com/share/93ccef514c574ad8a04b97c02b8d38f1" target="_blank" rel="noopener">Watch the intro on Loom</a></noscript>
           </div>
         </div>
       </div>
@@ -666,6 +679,36 @@
     buildTicker();
     var tickerTimer;
     window.addEventListener('resize', function () { clearTimeout(tickerTimer); tickerTimer = setTimeout(buildTicker, 200); });
+  }
+
+  // Loom: inject the player once, after the load event when the frame is near the viewport, or straight away on a click
+  var loomScreen = document.getElementById('loom-screen'), loomDone = false;
+  var injectLoom = function () {
+    if (loomDone || !loomScreen) return;
+    loomDone = true;
+    var f = document.createElement('iframe');
+    f.src = 'https://www.loom.com/embed/93ccef514c574ad8a04b97c02b8d38f1';
+    f.title = 'Muiz Ahmed intro for Emil';
+    f.setAttribute('allow', 'fullscreen');
+    f.setAttribute('allowfullscreen', '');
+    loomScreen.appendChild(f);
+    var facade = loomScreen.querySelector('.loom-facade');
+    if (facade) { facade.tabIndex = -1; facade.setAttribute('aria-hidden', 'true'); }
+  };
+  if (loomScreen) {
+    var facadeBtn = loomScreen.querySelector('.loom-facade');
+    if (facadeBtn) facadeBtn.addEventListener('click', injectLoom);
+    var watchBtn = document.querySelector('.hero a[href="#intro"]');
+    if (watchBtn) watchBtn.addEventListener('click', injectLoom);
+    var nearViewport = function () {
+      if (!('IntersectionObserver' in window)) { injectLoom(); return; }
+      var lio = new IntersectionObserver(function (entries) {
+        if (entries.some(function (e) { return e.isIntersecting; })) { lio.disconnect(); injectLoom(); }
+      }, { rootMargin: '200px 0px' });
+      lio.observe(loomScreen);
+    };
+    if (document.readyState === 'complete') nearViewport();
+    else window.addEventListener('load', function () { setTimeout(nearViewport, 0); });
   }
 
   var items = document.querySelectorAll('.reveal');
