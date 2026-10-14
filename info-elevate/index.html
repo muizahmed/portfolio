@@ -692,6 +692,7 @@
   var injectLoom = function () {
     if (loomDone || !loomScreen) return;
     loomDone = true;
+    if (window.clarity) window.clarity('set', 'played_intro', 'yes');
     if (previewIO) previewIO.disconnect();
     var f = document.createElement('iframe');
     f.src = 'https://www.loom.com/embed/93ccef514c574ad8a04b97c02b8d38f1?autoplay=1&hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true';
@@ -705,7 +706,10 @@
   };
   if (loomScreen) {
     var facadeBtn = loomScreen.querySelector('.loom-facade');
-    if (facadeBtn) facadeBtn.addEventListener('click', injectLoom);
+    if (facadeBtn) facadeBtn.addEventListener('click', function () {
+      if (window.clarity) window.clarity('event', 'loom_play_click');
+      injectLoom();
+    });
     var watchBtn = document.querySelector('.hero a[href="#intro"]');
     if (watchBtn) watchBtn.addEventListener('click', injectLoom);
     var startPreview = function () {
