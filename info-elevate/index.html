@@ -213,7 +213,13 @@ if (location.hostname === "portfolio.muizahmed.com") {
   .section-head .sub { margin-top: 16px; }
   .work .wrap { max-width: 1200px; }
   .cases { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; max-width: 640px; margin: 0 auto; }
-  @media (min-width: 1000px) { .cases { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: none; align-items: stretch; } }
+  @media (min-width: 1000px) {
+    .cases { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: none; align-items: stretch; }
+    /* the centre card gets the most attention: Lepus (first in the DOM, first when stacked) moves to the middle */
+    .cases > .case:nth-child(1) { order: 2; }
+    .cases > .case:nth-child(2) { order: 1; }
+    .cases > .case:nth-child(3) { order: 3; }
+  }
   .case {
     position: relative; display: flex; flex-direction: column; container-type: inline-size;
     padding: 38px 36px 36px; border-radius: 24px;
