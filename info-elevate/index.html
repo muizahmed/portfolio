@@ -274,11 +274,14 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; padding: 16px;
   }
   .screen iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; z-index: 2; }
+  .loom-preview { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
   .loom-facade {
-    position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; padding: 16px; border: 0; background: transparent;
+    position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; padding: 16px; border: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(12, 28, 22, 0.55) 0%, rgba(12, 28, 22, 0.28) 32%, rgba(12, 28, 22, 0.08) 62%, rgba(12, 28, 22, 0) 80%);
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #FFFFFF; font: inherit; cursor: pointer;
   }
   .loom-facade:hover .play { transform: scale(1.06); }
+  .loom-facade small { text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6); color: #FFFFFF; }
   .loom-facade:focus-visible { outline: 2px solid var(--gold-light); outline-offset: -6px; border-radius: 22px; }
   .play { transition: transform 0.2s ease; }
   .loom-noscript { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 3; color: #FFFFFF; font-weight: 600; text-underline-offset: 3px; }
@@ -483,8 +486,9 @@
       <div class="frame-wrap reveal">
         <div class="halo" aria-hidden="true"></div>
         <div class="frame">
-          <!-- Loom facade: the player iframe is added by JS after page load (or on click), so Loom never delays the load event. -->
+          <!-- Loom facade: a silent 5s preview loop (set up by JS after the load event) under a play button; the real player loads only on click. -->
           <div class="screen" id="loom-screen">
+            <video class="loom-preview" muted playsinline loop preload="none" aria-hidden="true" tabindex="-1" data-src="assets/loom-preview.mp4" data-poster="assets/loom-preview.jpg"></video>
             <button class="loom-facade" type="button" aria-label="Play Muiz Ahmed intro for Emil">
               <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg></span>
               <small>Loom video</small>
@@ -681,34 +685,45 @@
     window.addEventListener('resize', function () { clearTimeout(tickerTimer); tickerTimer = setTimeout(buildTicker, 200); });
   }
 
-  // Loom: inject the player once, after the load event when the frame is near the viewport, or straight away on a click
-  var loomScreen = document.getElementById('loom-screen'), loomDone = false;
+  // Loom facade: a silent 5s preview loop (assets/loom-preview.mp4) plays only after the load event while the frame is
+  // near the viewport; the real player loads only on a click, so it can start with sound on that gesture.
+  var loomScreen = document.getElementById('loom-screen'), loomDone = false, previewIO = null;
+  var preview = loomScreen ? loomScreen.querySelector('.loom-preview') : null;
   var injectLoom = function () {
     if (loomDone || !loomScreen) return;
     loomDone = true;
+    if (previewIO) previewIO.disconnect();
     var f = document.createElement('iframe');
-    f.src = 'https://www.loom.com/embed/93ccef514c574ad8a04b97c02b8d38f1';
+    f.src = 'https://www.loom.com/embed/93ccef514c574ad8a04b97c02b8d38f1?autoplay=1&hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true';
     f.title = 'Muiz Ahmed intro for Emil';
-    f.setAttribute('allow', 'fullscreen');
+    f.setAttribute('allow', 'autoplay; fullscreen');
     f.setAttribute('allowfullscreen', '');
     loomScreen.appendChild(f);
     var facade = loomScreen.querySelector('.loom-facade');
-    if (facade) { facade.tabIndex = -1; facade.setAttribute('aria-hidden', 'true'); }
+    if (facade && facade.parentNode) facade.parentNode.removeChild(facade);
+    if (preview) { preview.pause(); preview.removeAttribute('src'); preview.load(); if (preview.parentNode) preview.parentNode.removeChild(preview); preview = null; }
   };
   if (loomScreen) {
     var facadeBtn = loomScreen.querySelector('.loom-facade');
     if (facadeBtn) facadeBtn.addEventListener('click', injectLoom);
     var watchBtn = document.querySelector('.hero a[href="#intro"]');
     if (watchBtn) watchBtn.addEventListener('click', injectLoom);
-    var nearViewport = function () {
-      if (!('IntersectionObserver' in window)) { injectLoom(); return; }
-      var lio = new IntersectionObserver(function (entries) {
-        if (entries.some(function (e) { return e.isIntersecting; })) { lio.disconnect(); injectLoom(); }
+    var startPreview = function () {
+      if (!preview || loomDone) return;
+      preview.poster = preview.getAttribute('data-poster');      // poster too waits for the load event
+      if (reduce || !('IntersectionObserver' in window)) return; // reduced motion: poster only
+      preview.muted = true;
+      previewIO = new IntersectionObserver(function (entries) {
+        if (!preview) return;
+        if (entries.some(function (e) { return e.isIntersecting; })) {
+          if (!preview.getAttribute('src')) preview.src = preview.getAttribute('data-src');
+          var pr = preview.play(); if (pr && pr.catch) pr.catch(function () {});
+        } else preview.pause();
       }, { rootMargin: '200px 0px' });
-      lio.observe(loomScreen);
+      previewIO.observe(loomScreen);
     };
-    if (document.readyState === 'complete') nearViewport();
-    else window.addEventListener('load', function () { setTimeout(nearViewport, 0); });
+    if (document.readyState === 'complete') startPreview();
+    else window.addEventListener('load', function () { setTimeout(startPreview, 0); });
   }
 
   var items = document.querySelectorAll('.reveal');
