@@ -22,12 +22,73 @@
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#F6F0E3">
 <title>Muiz Ahmed</title>
-<!-- Microsoft Clarity (project yxgjsowvuf). Loads on the live domain only, so local previews create no sessions. -->
+<!-- Microsoft Clarity (project yxgjsowvuf). Order: opt-out switch, automation check, live-host guard, then load.
+     Owner opt-out: visit any page with ?notrack once per browser (?track turns it back on).
+     Sessions start tagged human=no and flip to human=yes on the first real interaction; filter Clarity by human = yes. -->
 <script>
-if (location.hostname === "portfolio.muizahmed.com") {
-  (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "yxgjsowvuf");
-  clarity("set", "client", "root");
-}
+(function () {
+  var CLIENT = "root";
+  var toast = function (msg) {
+    var show = function () {
+      var el = document.createElement("div");
+      el.textContent = msg;
+      el.setAttribute("role", "status");
+      el.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100;padding:10px 18px;border-radius:999px;" +
+        "background:#174A37;color:#FAF7F0;font:600 14px/1.4 Inter,system-ui,sans-serif;box-shadow:0 12px 30px -12px rgba(0,0,0,.45);" +
+        "opacity:0;transition:opacity .25s ease;pointer-events:none;max-width:calc(100vw - 32px);text-align:center";
+      document.body.appendChild(el);
+      requestAnimationFrame(function () { el.style.opacity = "1"; });
+      setTimeout(function () { el.style.opacity = "0"; setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 300); }, 3000);
+    };
+    if (document.body) show(); else document.addEventListener("DOMContentLoaded", show);
+  };
+
+  // 1. opt-out switch (runs on any host so it can be tested locally)
+  var off = false;
+  try {
+    var q = new URLSearchParams(location.search), msg = "";
+    if (q.has("notrack")) { localStorage.setItem("mz_notrack", "1"); q.delete("notrack"); msg = "Tracking off for this browser"; }
+    else if (q.has("track")) { localStorage.removeItem("mz_notrack"); q.delete("track"); msg = "Tracking on for this browser"; }
+    if (msg) {
+      var rest = q.toString();
+      history.replaceState(history.state, "", location.pathname + (rest ? "?" + rest : "") + location.hash);
+      toast(msg);
+    }
+    off = localStorage.getItem("mz_notrack") === "1";
+  } catch (e) {}
+  if (off) return;
+
+  // 2. automated browsers
+  if (navigator.webdriver === true) return;
+
+  // 3. live host only
+  if (location.hostname === "portfolio.muizahmed.com") {
+    (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "yxgjsowvuf");
+    clarity("set", "client", CLIENT);
+    clarity("set", "human", "no");
+
+    // 4. first real interaction marks the session as a person
+    var done = false, moved = 0, lastX = null, lastY = null, opts = { passive: true };
+    var events = ["scroll", "pointerdown", "touchstart", "keydown", "mousemove"];
+    var human = function () {
+      if (done) return;
+      done = true;
+      if (window.clarity) window.clarity("set", "human", "yes");
+      events.forEach(function (ev) { window.removeEventListener(ev, handler, opts); });
+    };
+    var handler = function (e) {
+      if (e.type === "scroll") { if ((window.scrollY || document.documentElement.scrollTop) >= 50) human(); return; }
+      if (e.type === "mousemove") {
+        if (lastX !== null) moved += Math.abs(e.clientX - lastX) + Math.abs(e.clientY - lastY);
+        lastX = e.clientX; lastY = e.clientY;
+        if (moved >= 30) human();
+        return;
+      }
+      human();
+    };
+    events.forEach(function (ev) { window.addEventListener(ev, handler, opts); });
+  }
+})();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
